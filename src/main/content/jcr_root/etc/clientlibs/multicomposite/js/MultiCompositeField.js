@@ -350,7 +350,14 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
             }, this);
 
             if (this.name) {
-                var c = record.get(this.name);
+                var p;
+                if (this.prefix.indexOf("./") != 0) {
+                    p = this.prefix + this.name;
+                } else {
+                    p = this.prefix.substr(2) + this.name;
+                }
+                var c = record.get(p);
+
                 for (var n in c) {
                     var v = record.get(this.getName());
                     this.processItem(n, c[n]);
