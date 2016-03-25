@@ -113,6 +113,9 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
         var list = this;
 
         var items = new Array();
+        if (!config.fieldConfigs[0].limit) {
+        	config.fieldConfigs[0].limit = "0";
+        }
 
         if(!config.readOnly) {
             items.push({
@@ -120,7 +123,17 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
                 cls: "cq-multifield-btn",
                 text: "+",
                 handler: function() {
-                    list.addItem();
+                	if(config.fieldConfigs[0].limit == 0 || list.items.getCount() <= config.fieldConfigs[0].limit) {
+                	    list.addItem();
+                	} else {
+                	    CQ.Ext.Msg.show({
+                	        title: 'Limit reached',
+                	        msg: 'You are only allowed to add ' + config.fieldConfigs[0].limit + 
+                	             ' items',
+                	        icon:CQ.Ext.MessageBox.WARNING,
+                	        buttons: CQ.Ext.Msg.OK
+                	    });
+                	}
                 }
             });
         }
@@ -128,7 +141,7 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
         if (config.name) {
             // TODO: change to delete list (triggered after first reordering)
             this.hiddenDeleteField = new CQ.Ext.form.Hidden({
-                "name":config.name + CQ.Sling.DELETE_SUFFIX
+                "name": config.prefix + config.name + CQ.Sling.DELETE_SUFFIX
             });
             items.push(this.hiddenDeleteField);
         }
@@ -284,25 +297,12 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
         if (o) {
             item.setValue(o);
         }
+        
+        //The buttons seem to overflow off the screen if resize is not called.
+        this.fireEvent("resize");
 
-        if (this.fieldWidth < 0) {
-            // fieldWidth is < 0 when e.g. the MultiCompositeField is on a hidden tab page;
-            // do not set width but wait for resize event triggered when the tab page is shown
-            return;
-        }
-        if (!this.fieldWidth) {
-            this.calculateFieldWidth(item);
-        }
-        try {
-            // TODO: field width
-            //console.log("setPanelWidth", this.fieldWidth);
-            //item.setPanelWidth(this.fieldWidth);
-        }
-        catch (e) {
-            CQ.Log.debug("CQ.form.MultiCompositeField#addItem: " + e.message);
-        }
     },
-
+    
     processPath: function(path) {
         this.path = path;
     },
@@ -350,7 +350,14 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
             }, this);
 
             if (this.name) {
-                var c = record.get(this.name);
+                var p;
+                if (this.prefix.indexOf("./") != 0) {
+                    p = this.prefix + this.name;
+                } else {
+                    p = this.prefix.substr(2) + this.name;
+                }
+                var c = record.get(p);
+
                 for (var n in c) {
                     var v = record.get(this.getName());
                     this.processItem(n, c[n]);
