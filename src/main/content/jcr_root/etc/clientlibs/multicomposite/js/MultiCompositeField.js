@@ -128,7 +128,7 @@ CQ.form.MultiCompositeField = CQ.Ext.extend(CQ.form.CompositeField, {
         if (config.name) {
             // TODO: change to delete list (triggered after first reordering)
             this.hiddenDeleteField = new CQ.Ext.form.Hidden({
-                "name":config.name + CQ.Sling.DELETE_SUFFIX
+                "name": config.prefix + config.name + CQ.Sling.DELETE_SUFFIX
             });
             items.push(this.hiddenDeleteField);
         }
